@@ -19,10 +19,8 @@ package android.widget;
 import android.R;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
-import android.content.UndoManager;
+import android.app.AlertDialog;
+import android.content.*;
 import android.content.res.ColorStateList;
 import android.content.res.CompatibilityInfo;
 import android.content.res.Resources;
@@ -95,23 +93,9 @@ import android.util.AttributeSet;
 import android.util.FloatMath;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.*;
 import android.view.AccessibilityIterators.TextSegmentIterator;
-import android.view.ActionMode;
-import android.view.Choreographer;
-import android.view.DragEvent;
-import android.view.Gravity;
-import android.view.HapticFeedbackConstants;
-import android.view.KeyCharacterMap;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewConfiguration;
-import android.view.ViewDebug;
 import android.view.ViewGroup.LayoutParams;
-import android.view.ViewRootImpl;
-import android.view.ViewTreeObserver;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -8615,6 +8599,9 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
 
     int translateStart;
     int translateEnd;
+    String translateTerm;
+    String[] languageCodes = new String[]{"en", "es", "fr", "ru", "it"};
+    String[] languageTerms = new String[]{"English", "Spanish", "French", "Russian", "Italian"};
 
     private class TranslateTextTask extends AsyncTask <String, Void, Void> {
         String translatedText;
@@ -8627,7 +8614,8 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
             String originalText = params[0];
 
             HttpClient httpClient = new DefaultHttpClient();
-            url = "http://cyantranslate.mybluemix.net/translate?text=" + URLEncoder.encode(originalText) + "&from=en&to=es";
+
+            url = "http://cyantranslate.mybluemix.net/translate?text=" + URLEncoder.encode(originalText) + "&to=" + translateTerm; //&from=en
             HttpGet httpGet = new HttpGet(url);
             try {
                 HttpResponse response = httpClient.execute(httpGet);
@@ -8664,8 +8652,24 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
             String suffix = getText().toString().substring(translateEnd);
             setText(prefix + translatedText + suffix);
         }
-
     }
+
+    private void displayTranslateDialog(final String originalText) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getContext());
+        ArrayAdapter<String> languages = new ArrayAdapter(getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, languageTerms);
+        alertDialogBuilder.setAdapter(languages, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Set language
+                translateTerm = languageCodes[which];
+
+                new TranslateTextTask().execute(originalText);
+            }
+        });
+        alertDialogBuilder.setTitle("Select a Language");
+        alertDialogBuilder.show();
+    }
+
 
     /**
      * Called when a context menu option for the text view is selected.  Currently
@@ -8691,8 +8695,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                 String originalText = getTransformedText(min, max).toString();
                 translateStart = min;
                 translateEnd = max;
-                Toast.makeText(getContext(), originalText, Toast.LENGTH_SHORT).show();
-                new TranslateTextTask().execute(originalText);
+                displayTranslateDialog(originalText);
 
                 return true;
             case ID_SELECT_ALL:
