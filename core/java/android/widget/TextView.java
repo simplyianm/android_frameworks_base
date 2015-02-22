@@ -131,10 +131,22 @@ import android.widget.RemoteViews.RemoteView;
 import com.android.internal.util.FastMath;
 import com.android.internal.widget.EditableInputConnection;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -8601,6 +8613,60 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
     static final int ID_COPY = android.R.id.copy;
     static final int ID_PASTE = android.R.id.paste;
 
+    int translateStart;
+    int translateEnd;
+
+    private class TranslateTextTask extends AsyncTask <String, Void, Void> {
+        String translatedText;
+        String url;
+        JSONObject result;
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            String originalText = params[0];
+
+            HttpClient httpClient = new DefaultHttpClient();
+            url = "http://cyantranslate.mybluemix.net/translate?text=" + URLEncoder.encode(originalText) + "&from=en&to=es";
+            HttpGet httpGet = new HttpGet(url);
+            try {
+                HttpResponse response = httpClient.execute(httpGet);
+                StatusLine statusLine = response.getStatusLine();
+                if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+                    HttpEntity entity = response.getEntity();
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    entity.writeTo(out);
+                    out.close();
+
+                    String str = out.toString();
+                    result = new JSONObject(str);
+                    translatedText = result.getString("result");
+
+                } else {
+                    // handle bad response
+                }
+
+                response.getEntity().consumeContent();
+            } catch (ClientProtocolException e) {
+                // handle exception
+            } catch (IOException e) {
+                // handle exception
+            } catch (JSONException e) {
+
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            String prefix = getText().toString().substring(0, translateStart);
+            String suffix = getText().toString().substring(translateEnd);
+            setText(prefix + translatedText + suffix);
+        }
+
+    }
+
     /**
      * Called when a context menu option for the text view is selected.  Currently
      * this will be one of {@link android.R.id#selectAll}, {@link android.R.id#cut},
@@ -8623,7 +8689,11 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
         switch (id) {
             case ID_TRANSLATE:
                 String originalText = getTransformedText(min, max).toString();
+                translateStart = min;
+                translateEnd = max;
                 Toast.makeText(getContext(), originalText, Toast.LENGTH_SHORT).show();
+                new TranslateTextTask().execute(originalText);
+
                 return true;
             case ID_SELECT_ALL:
                 // This does not enter text selection mode. Text is highlighted, so that it can be

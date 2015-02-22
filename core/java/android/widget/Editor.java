@@ -2820,8 +2820,7 @@ public class Editor {
             mode.setTitleOptionalHint(true);
 
             menu.add(0, TextView.ID_TRANSLATE, 0, "Translation").
-                    setIcon(styledAttributes.getResourceId(
-                            R.styleable.SelectionModeDrawables_actionModeCutDrawable, 0)).
+                    setIcon(com.android.internal.R.drawable.ic_google_translate).
                     setAlphabeticShortcut('t').
                     setShowAsAction(
                             MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
