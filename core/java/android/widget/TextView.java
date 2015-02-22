@@ -8595,6 +8595,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
         return imm != null && imm.isActive(this);
     }
 
+    static final int ID_TRANSLATE = 12992193;
     static final int ID_SELECT_ALL = android.R.id.selectAll;
     static final int ID_CUT = android.R.id.cut;
     static final int ID_COPY = android.R.id.copy;
@@ -8620,6 +8621,10 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
         }
 
         switch (id) {
+            case ID_TRANSLATE:
+                String originalText = getTransformedText(min, max).toString();
+                Toast.makeText(getContext(), originalText, Toast.LENGTH_SHORT).show();
+                return true;
             case ID_SELECT_ALL:
                 // This does not enter text selection mode. Text is highlighted, so that it can be
                 // bulk edited, like selectAllOnFocus does. Returns true even if text is empty.

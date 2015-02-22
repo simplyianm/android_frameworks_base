@@ -2819,6 +2819,13 @@ public class Editor {
             mode.setSubtitle(null);
             mode.setTitleOptionalHint(true);
 
+            menu.add(0, TextView.ID_TRANSLATE, 0, "Translation").
+                    setIcon(styledAttributes.getResourceId(
+                            R.styleable.SelectionModeDrawables_actionModeCutDrawable, 0)).
+                    setAlphabeticShortcut('t').
+                    setShowAsAction(
+                            MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+
             menu.add(0, TextView.ID_SELECT_ALL, 0, com.android.internal.R.string.selectAll).
                     setIcon(styledAttributes.getResourceId(
                             R.styleable.SelectionModeDrawables_actionModeSelectAllDrawable, 0)).
