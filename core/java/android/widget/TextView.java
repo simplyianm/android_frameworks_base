@@ -20,6 +20,7 @@ import android.R;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.app.AlertDialog;
+import android.app.SearchManager;
 import android.content.*;
 import android.content.res.ColorStateList;
 import android.content.res.CompatibilityInfo;
@@ -35,6 +36,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.inputmethodservice.ExtractEditText;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -8592,6 +8594,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
     }
 
     static final int ID_TRANSLATE = 12992193;
+    static final int ID_SEARCH = 12992194;
     static final int ID_SELECT_ALL = android.R.id.selectAll;
     static final int ID_CUT = android.R.id.cut;
     static final int ID_COPY = android.R.id.copy;
@@ -8671,6 +8674,13 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
     }
 
 
+    public void searchWeb(String query) {
+        String url = "http://www.google.com/search?q=" + query;
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setData(Uri.parse(url));
+        getContext().startActivity(i);
+    }
+
     /**
      * Called when a context menu option for the text view is selected.  Currently
      * this will be one of {@link android.R.id#selectAll}, {@link android.R.id#cut},
@@ -8696,6 +8706,11 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                 translateStart = min;
                 translateEnd = max;
                 displayTranslateDialog(originalText);
+
+                return true;
+            case ID_SEARCH:
+                String query = getTransformedText(min, max).toString();
+                searchWeb(query);
 
                 return true;
             case ID_SELECT_ALL:

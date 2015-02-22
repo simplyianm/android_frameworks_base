@@ -2825,6 +2825,12 @@ public class Editor {
                     setShowAsAction(
                             MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 
+            menu.add(0, TextView.ID_SEARCH, 0, "Search").
+                    setIcon(R.drawable.ic_menu_search).
+                    setAlphabeticShortcut('s').
+                    setShowAsAction(
+                            MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+
             menu.add(0, TextView.ID_SELECT_ALL, 0, com.android.internal.R.string.selectAll).
                     setIcon(styledAttributes.getResourceId(
                             R.styleable.SelectionModeDrawables_actionModeSelectAllDrawable, 0)).
