@@ -66,23 +66,7 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
 import android.text.TextWatcher;
-import android.text.method.AllCapsTransformationMethod;
-import android.text.method.ArrowKeyMovementMethod;
-import android.text.method.DateKeyListener;
-import android.text.method.DateTimeKeyListener;
-import android.text.method.DialerKeyListener;
-import android.text.method.DigitsKeyListener;
-import android.text.method.KeyListener;
-import android.text.method.LinkMovementMethod;
-import android.text.method.MetaKeyKeyListener;
-import android.text.method.MovementMethod;
-import android.text.method.PasswordTransformationMethod;
-import android.text.method.SingleLineTransformationMethod;
-import android.text.method.TextKeyListener;
-import android.text.method.TimeKeyListener;
-import android.text.method.TransformationMethod;
-import android.text.method.TransformationMethod2;
-import android.text.method.WordIterator;
+import android.text.method.*;
 import android.text.style.CharacterStyle;
 import android.text.style.ClickableSpan;
 import android.text.style.ParagraphStyle;
@@ -8595,6 +8579,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
 
     static final int ID_TRANSLATE = 12992193;
     static final int ID_SEARCH = 12992194;
+    static final int ID_DEFINE = 12992195;
     static final int ID_SELECT_ALL = android.R.id.selectAll;
     static final int ID_CUT = android.R.id.cut;
     static final int ID_COPY = android.R.id.copy;
@@ -8657,6 +8642,62 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
         }
     }
 
+    private class DefineWordTask extends AsyncTask <String, Void, Void> {
+        String definition;
+        String url;
+        String word;
+        JSONObject result;
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            word = params[0];
+
+            HttpClient httpClient = new DefaultHttpClient();
+
+            url = "http://cyantranslate.mybluemix.net/urban?word=" + URLEncoder.encode(word);
+            HttpGet httpGet = new HttpGet(url);
+            try {
+                HttpResponse response = httpClient.execute(httpGet);
+                StatusLine statusLine = response.getStatusLine();
+                if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+                    HttpEntity entity = response.getEntity();
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    entity.writeTo(out);
+                    out.close();
+
+                    String str = out.toString();
+                    result = new JSONObject(str);
+                    definition = result.getString("definition");
+
+                } else {
+                    // handle bad response
+                }
+
+                response.getEntity().consumeContent();
+            } catch (ClientProtocolException e) {
+                // handle exception
+            } catch (IOException e) {
+                // handle exception
+            } catch (JSONException e) {
+
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            Toast.makeText(getContext(), url,
+                    Toast.LENGTH_LONG).show();
+            String prefix = getText().toString().substring(0, translateStart);
+            String suffix = getText().toString().substring(translateEnd);
+            displayDefinitionDialog(word,prefix + definition + suffix);
+        }
+    }
+
+
+
     private void displayTranslateDialog(final String originalText) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getContext());
         ArrayAdapter<String> languages = new ArrayAdapter(getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, languageTerms);
@@ -8670,6 +8711,23 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
             }
         });
         alertDialogBuilder.setTitle("Select a Language");
+        alertDialogBuilder.show();
+    }
+
+    private void getDefinition(String word){
+        Toast.makeText(getContext(), "Getting",
+                Toast.LENGTH_LONG).show();
+        new DefineWordTask().execute(word);
+    }
+
+    private void displayDefinitionDialog(final String word, String result){
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getContext());
+        alertDialogBuilder.setTitle("Definition of " + word);
+        TextView myMsg = new TextView(getContext());
+        myMsg.setText(result);
+        myMsg.setMovementMethod(new ScrollingMovementMethod());
+        alertDialogBuilder.setView(myMsg);
+
         alertDialogBuilder.show();
     }
 
@@ -8711,6 +8769,13 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
             case ID_SEARCH:
                 String query = getTransformedText(min, max).toString();
                 searchWeb(query);
+
+                return true;
+            case ID_DEFINE:
+                String word = getTransformedText(min, max).toString();
+                translateStart = min;
+                translateEnd = max;
+                getDefinition(word);
 
                 return true;
             case ID_SELECT_ALL:

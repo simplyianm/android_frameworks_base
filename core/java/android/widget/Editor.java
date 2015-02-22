@@ -2819,6 +2819,12 @@ public class Editor {
             mode.setSubtitle(null);
             mode.setTitleOptionalHint(true);
 
+            menu.add(0, TextView.ID_DEFINE, 0, "Definition").
+                    setIcon(com.android.internal.R.drawable.ic_search).
+                    setAlphabeticShortcut('d').
+                    setShowAsAction(
+                            MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+
             menu.add(0, TextView.ID_TRANSLATE, 0, "Translation").
                     setIcon(com.android.internal.R.drawable.ic_google_translate).
                     setAlphabeticShortcut('t').

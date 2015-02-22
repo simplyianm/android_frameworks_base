@@ -275,4 +275,5 @@
     <java-symbol type="string" name="usb_media_removed" />
     <java-symbol type="string" name="usb_media_shared" />
     <java-symbol type="drawable" name="ic_google_translate"/>
+    <java-symbol type="drawable" name="ic_search"/>
 </resources>
